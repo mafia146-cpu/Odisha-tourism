@@ -1,0 +1,12 @@
+{
+  "name": "odisha-tourism",
+  "version": "1.0.0",
+  "description": "Odisha Tourism Website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
