@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Odisha Tourism</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: url('https://png.pngtree.com/thumb_back/fh260/background/20210907/pngtree-tourist-attraction-landmark-image_795645.jpg') no-repeat center/cover;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  backdrop-filter: blur(10px);
+  background: rgba(0,0,0,0.5);
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  color: white;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 40px;
+}
+
+input {
+  width: 80%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: none;
+}
+
+select, button {
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  margin: 10px;
+}
+
+button {
+  background: #ff5722;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #e64a19;
+}
+
+#results {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* place css */
+.place {
+  background: rgba(255,255,255,0.15);
+  padding: 15px;
+  border-radius: 15px;
+  transition: 0.3s;
+  backdrop-filter: blur(5px);
+}
+
+.place:hover {
+  transform: translateY(-5px) scale(1.02);
+}
+
+.place h3 {
+  margin: 0;
+  color: #ffcc70;
+  font-size: 18px;
+}
+.place p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+/* hotel css */
+.hotel-container {
+  text-align: center;
+}
+
+.hotel-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.hotel-heading {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.hotel-section {
+  margin-bottom: 20px;
+}
+
+.hotel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.hotel-card {
+  background: rgba(255,255,255,0.15);
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  transition: 0.3s;
+}
+
+.hotel-card:hover {
+  transform: scale(1.05);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <input type="text" id="searchBox" placeholder="Search district..." onkeyup="filterDistricts()">
+
+  <br>
+
+  <select id="district">
+    <option value="">Select District</option>
+  </select>
+
+  <br>
+
+  <button onclick="showPlaces()">Show Places</button>
+
+  <div id="results"></div>
+</div>
+
+<script>
+    //place data
+const data = {
+  "Angul": [
+    { name: "Satkosia Gorge", desc: "A stunning gorge on the Mahanadi River known for wildlife and scenic beauty." },
+    { name: "Tikarpada Sanctuary", desc: "A wildlife sanctuary famous for crocodile conservation." },
+    { name: "Deulajhari Hot Springs", desc: "Natural hot springs surrounded by temples and forest." },
+    { name: "Rengali Dam", desc: "A major dam offering panoramic water views." },
+    { name: "Talcher", desc: "An industrial town known for coal mines and power plants." },
+    { name: "Kosala Village", desc: "A cultural village representing rural Odisha life." }
+  ],
+
+  "Balasore": [
+    { name: "Panchalingeswar Temple", desc: "A hilltop temple with natural water streams over Shiva lingas." },
+    { name: "Kuldiha Sanctuary", desc: "A forest reserve rich in flora and fauna." },
+    { name: "Balaramgadi Beach", desc: "A peaceful beach known for fishing activities." },
+    { name: "Nilgiri Hills", desc: "Scenic hills ideal for trekking and nature lovers." },
+    { name: "Emami Jagannath Temple", desc: "A modern temple inspired by Puri Jagannath Temple." }
+  ],
+
+  "Bargarh": [
+    { name: "Debrigarh Sanctuary", desc: "A wildlife sanctuary near Hirakud Dam with rich biodiversity." },
+    { name: "Nrusinghanath Temple", desc: "A temple located at the foothills of Gandhamardan hills." },
+    { name: "Gandhamardan Hills", desc: "A mountain range known for medicinal plants and trekking." },
+    { name: "Huma Temple", desc: "A unique leaning temple dedicated to Lord Shiva." },
+    { name: "Barapahad", desc: "A scenic hill region offering beautiful views." },
+    { name: "Padmapur", desc: "A historical town with cultural significance." }
+  ],
+
+  "Bhadrak": [
+    { name: "Akhandalamani Temple", desc: "A famous Shiva temple attracting thousands of devotees." },
+    { name: "Dhamra Port", desc: "A major port with scenic coastal views." },
+    { name: "Bhadrakali Temple", desc: "A temple dedicated to Goddess Kali." },
+    { name: "Chandbali", desc: "A riverside town known for colonial history." },
+    { name: "Baitarani River", desc: "A sacred river flowing through the district." },
+    { name: "Aradi", desc: "A pilgrimage site near Akhandalamani Temple." }
+  ],
+
+  "Bolangir": [
+    { name: "Harishankar Temple", desc: "A temple combining both Shaivism and Vaishnavism traditions." },
+    { name: "Ranipur Jharial", desc: "An ancient archaeological site with temples." },
+    { name: "Patnagarh", desc: "A historic town with royal heritage." },
+    { name: "Saintala", desc: "A rural area known for traditional culture." },
+    { name: "Jogisarda", desc: "Birthplace of poet Gangadhar Meher." },
+    { name: "Titilagarh", desc: "One of the hottest towns in India." }
+  ],
+
+  "Boudh": [
+    { name: "Chari Sambhu Temple", desc: "A group of ancient Shiva temples." },
+    { name: "Boudh Hanuman Temple", desc: "A temple dedicated to Lord Hanuman." },
+    { name: "Satkosia", desc: "A scenic wildlife and river gorge area." },
+    { name: "Maa Bhagabati Temple", desc: "A local temple of religious importance." },
+    { name: "Jogindra Villa", desc: "A heritage site in Boudh town." },
+    { name: "Boudh Palace", desc: "A historical palace reflecting royal past." }
+  ],
+
+  "Cuttack": [
+    { name: "Barabati Fort", desc: "A historic fort showcasing Odisha’s medieval past." },
+    { name: "Netaji Birthplace", desc: "Museum dedicated to Subhas Chandra Bose." },
+    { name: "Mahanadi Barrage", desc: "A scenic dam ideal for evening visits." },
+    { name: "Deer Park", desc: "A peaceful park with wildlife." },
+    { name: "Chandi Temple", desc: "A famous temple dedicated to Goddess Chandi." },
+    { name: "Stone Revetment", desc: "A flood protection structure along the river." }
+  ],
+
+  "Deogarh": [
+    { name: "Pradhanpat Waterfall", desc: "A beautiful waterfall surrounded by forest." },
+    { name: "Kurudkut Waterfall", desc: "A hidden waterfall with natural beauty." },
+    { name: "Deogarh Palace", desc: "A royal palace with heritage architecture." },
+    { name: "Kailash Temple", desc: "A peaceful temple in natural surroundings." },
+    { name: "Riamal", desc: "A scenic rural area." },
+    { name: "Nearby Khandadhar", desc: "One of Odisha’s highest waterfalls." }
+  ],
+
+  "Dhenkanal": [
+    { name: "Kapilash Temple", desc: "A hilltop temple dedicated to Lord Shiva." },
+    { name: "Saptasajya", desc: "A scenic hill area with mythological importance." },
+    { name: "Joranda Monastery", desc: "A spiritual center of Mahima Dharma." },
+    { name: "Dhenkanal Palace", desc: "A royal heritage building." },
+    { name: "Saranga", desc: "A forested eco-tourism spot." },
+    { name: "Mahimagadi", desc: "Religious place of Mahima sect." }
+  ],
+
+  "Gajapati": [
+    { name: "Mahendragiri Hills", desc: "A sacred hill with mythological significance." },
+    { name: "Chandragiri", desc: "A Tibetan settlement with monasteries." },
+    { name: "Taptapani", desc: "Hot springs with medicinal value." },
+    { name: "Paralakhemundi Palace", desc: "A royal palace with history." },
+    { name: "Jeerango", desc: "A Buddhist monastery complex." },
+    { name: "Gundicha Temple", desc: "A religious temple site." }
+  ],
+
+  "Ganjam": [
+    { name: "Gopalpur Beach", desc: "A calm beach town popular among tourists." },
+    { name: "Taptapani Hot Springs", desc: "Natural sulfur springs in forest." },
+    { name: "Taratarini Temple", desc: "One of the Shakti Peethas." },
+    { name: "Rushikulya Beach", desc: "Known for olive ridley turtle nesting." },
+    { name: "Sonapur Beach", desc: "A peaceful beach near river mouth." },
+    { name: "Berhampur", desc: "A major commercial city." }
+  ],
+
+  "Jagatsinghpur": [
+    { name: "Paradeep Port", desc: "A major seaport of India." },
+    { name: "Gahirmatha Beach", desc: "Famous turtle nesting site." },
+    { name: "Bhagabati Temple", desc: "A popular local temple." },
+    { name: "Batighar", desc: "Historic lighthouse area." },
+    { name: "Jambu Marine", desc: "A coastal eco-tourism spot." },
+    { name: "Garh Kujang", desc: "A historical region." }
+  ],
+
+  "Jajpur": [
+    { name: "Biraja Temple", desc: "An important Shakti shrine." },
+    { name: "Ratnagiri", desc: "Ancient Buddhist site." },
+    { name: "Udayagiri", desc: "Archaeological remains of monasteries." },
+    { name: "Lalitgiri", desc: "One of the oldest Buddhist complexes." },
+    { name: "Brahmani River", desc: "A major river flowing through the district." },
+    { name: "Akhandalamani Nearby", desc: "A famous temple close to district." }
+  ],
+
+  "Jharsuguda": [
+    { name: "Koilighugar Waterfall", desc: "A scenic waterfall in forest." },
+    { name: "Gudguda Waterfall", desc: "A picnic spot with waterfalls." },
+    { name: "Jhadeswar Temple", desc: "A famous Shiva temple." },
+    { name: "Hirakud Nearby", desc: "World’s longest earthen dam nearby." },
+    { name: "Ulapgarh", desc: "A historical fort area." },
+    { name: "Badmal", desc: "A green rural region." }
+  ],
+
+  "Kalahandi": [
+    { name: "Karlapat Sanctuary", desc: "A dense forest with wildlife." },
+    { name: "Phurlijharan Falls", desc: "A picturesque waterfall." },
+    { name: "Asurgarh Fort", desc: "Ancient fort ruins." },
+    { name: "Junagarh Fort", desc: "Historic fort structure." },
+    { name: "Ampani Hills", desc: "A hill station-like area." },
+    { name: "Dokrichanchara", desc: "A scenic natural spot." }
+  ],
+
+  "Kandhamal": [
+    { name: "Daringbadi", desc: "Known as Kashmir of Odisha." },
+    { name: "Putudi Waterfall", desc: "A scenic waterfall." },
+    { name: "Belghar Sanctuary", desc: "Wildlife sanctuary in hills." },
+    { name: "Coffee Gardens", desc: "Famous for coffee plantations." },
+    { name: "Hill View Park", desc: "A viewpoint for tourists." },
+    { name: "Emu Farm", desc: "A unique bird farm attraction." }
+  ],
+
+  "Kendrapara": [
+    { name: "Bhitarkanika Park", desc: "Famous for mangroves and crocodiles." },
+    { name: "Gahirmatha Beach", desc: "World’s largest turtle rookery." },
+    { name: "Dangamal", desc: "Core area of Bhitarkanika." },
+    { name: "Habalikhati Beach", desc: "A remote scenic beach." },
+    { name: "Kanika Palace", desc: "Historic royal palace." },
+    { name: "Batighar", desc: "A lighthouse area." }
+  ],
+
+  "Keonjhar": [
+    { name: "Khandadhar Falls", desc: "One of the highest waterfalls in Odisha." },
+    { name: "Sanaghagara Falls", desc: "A scenic picnic waterfall." },
+    { name: "Badaghagara Falls", desc: "A wide waterfall with greenery." },
+    { name: "Gonasika", desc: "Origin of Baitarani River." },
+    { name: "Murga Mahadev", desc: "A temple in hills." },
+    { name: "Sitabinji", desc: "A mythological site." }
+  ],
+
+  "Khordha": [
+    { name: "Nandankanan Zoo", desc: "Famous zoo with safari and white tigers." },
+    { name: "Dhauli Hills", desc: "Site of Kalinga War and peace edicts." },
+    { name: "Khandagiri Caves", desc: "Ancient Jain caves." },
+    { name: "Udayagiri Caves", desc: "Rock-cut caves with carvings." },
+    { name: "Deras Dam", desc: "A calm water reservoir." },
+    { name: "Atri Hot Springs", desc: "Natural hot water springs." }
+  ],
+
+  "Koraput": [
+    { name: "Deomali Hills", desc: "Highest peak of Odisha." },
+    { name: "Duduma Falls", desc: "A majestic waterfall." },
+    { name: "Jagannath Temple", desc: "A famous local temple." },
+    { name: "Kolab Dam", desc: "A scenic dam area." },
+    { name: "Tribal Museum", desc: "Showcases tribal culture." },
+    { name: "Gupteswar Cave", desc: "A sacred cave temple." }
+  ],
+
+  "Malkangiri": [
+    { name: "Balimela Reservoir", desc: "A large reservoir with scenic views." },
+    { name: "Satiguda Dam", desc: "A peaceful picnic spot." },
+    { name: "Chitrakonda", desc: "A beautiful water landscape." },
+    { name: "Manyamkonda", desc: "A forest hill region." },
+    { name: "Ammakunda", desc: "A natural water pool." },
+    { name: "Kalimela", desc: "A tribal region." }
+  ],
+
+  "Mayurbhanj": [
+    { name: "Simlipal Park", desc: "A famous tiger reserve." },
+    { name: "Barehipani Falls", desc: "One of the highest waterfalls in India." },
+    { name: "Joranda Falls", desc: "A steep waterfall." },
+    { name: "Khiching Temple", desc: "Ancient temple ruins." },
+    { name: "Devkund", desc: "A sacred waterfall." },
+    { name: "Uski Waterfall", desc: "A hidden natural spot." }
+  ],
+
+  "Nabarangpur": [
+    { name: "Podagada Fort", desc: "Historic fort ruins." },
+    { name: "Papadahandi", desc: "A historical place." },
+    { name: "Chandahandi", desc: "Known for local culture." },
+    { name: "Umerkote", desc: "A major town." },
+    { name: "Indravati River", desc: "A scenic river." },
+    { name: "Turi River", desc: "A local river." }
+  ],
+
+  "Nayagarh": [
+    { name: "Kantilo Nilamadhab", desc: "Temple on river island." },
+    { name: "Satkosia", desc: "Wildlife and river gorge." },
+    { name: "Ranpur Palace", desc: "Royal palace." },
+    { name: "Kuanria Dam", desc: "A picnic spot." },
+    { name: "Baramul", desc: "River confluence area." },
+    { name: "Odagaon", desc: "A small town." }
+  ],
+
+  "Nuapada": [
+    { name: "Sunabeda Sanctuary", desc: "A forest plateau with wildlife." },
+    { name: "Patora Dam", desc: "A scenic dam." },
+    { name: "Khariar", desc: "A town with heritage." },
+    { name: "Boden", desc: "A rural region." },
+    { name: "Pataleswar Temple", desc: "A Shiva temple." },
+    { name: "Dharambandha", desc: "A village area." }
+  ],
+
+  "Puri": [
+    { name: "Jagannath Temple", desc: "One of the Char Dham pilgrimage sites." },
+    { name: "Konark Sun Temple", desc: "A UNESCO World Heritage monument." },
+    { name: "Puri Beach", desc: "A famous tourist beach." },
+    { name: "Chilika Lake", desc: "Largest lagoon in Asia." },
+    { name: "Raghurajpur", desc: "A heritage crafts village." },
+    { name: "Satapada", desc: "Dolphin watching point." }
+  ],
+
+  "Rayagada": [
+    { name: "Minajhola", desc: "A scenic picnic spot." },
+    { name: "Chatikona", desc: "A tribal market area." },
+    { name: "Laxminarayan Temple", desc: "A religious temple." },
+    { name: "Padmapur", desc: "A small town." },
+    { name: "Hatipathar", desc: "A rocky scenic place." },
+    { name: "Deomali Nearby", desc: "Hill range nearby." }
+  ],
+
+  "Sambalpur": [
+    { name: "Hirakud Dam", desc: "Longest earthen dam in the world." },
+    { name: "Samaleswari Temple", desc: "Famous temple of Goddess Samaleswari." },
+    { name: "Debrigarh Sanctuary", desc: "A wildlife sanctuary." },
+    { name: "Leaning Temple", desc: "A tilted Shiva temple." },
+    { name: "Ghanteswari Temple", desc: "Temple near river." },
+    { name: "Cattle Island", desc: "Island of wild cattle." }
+  ],
+
+  "Subarnapur": [
+    { name: "Sonepur Town", desc: "Historic town at river confluence." },
+    { name: "Kosaleswar Temple", desc: "Temple near Mahanadi River." },
+    { name: "Tel River", desc: "A major river." },
+    { name: "Subarnameru Temple", desc: "Golden temple structure." },
+    { name: "Royal Palace", desc: "Historic palace." },
+    { name: "Asurgarh Nearby", desc: "Ancient fort." }
+  ],
+
+  "Sundargarh": [
+    { name: "Mandira Dam", desc: "A scenic dam." },
+    { name: "Khandadhar Falls", desc: "A majestic waterfall." },
+    { name: "Darjeeng", desc: "A picnic spot." },
+    { name: "Vedvyas", desc: "Confluence of rivers." },
+    { name: "Rourkela", desc: "Industrial city." },
+    { name: "Hanuman Vatika", desc: "A large temple complex." }
+  ]
+
+  
+};
+
+// hotel data
+const hotels = {
+  "Jagannath Temple": {
+    four: ["Hotel Holiday Resort", "Hotel Pushpa", "Hotel Sea Palace"],
+    five: ["Mayfair Heritage", "Toshali Sands", "Sterling Puri"]
+  },
+
+  "Puri Beach": {
+    four: ["Hotel Sonar Bangla", "Hotel Golden Tree", "Hotel Naren Palace"],
+    five: ["Mayfair Waves", "The Hans Coco Palms", "Toshali Sands"]
+  },
+
+  "Konark Sun Temple": {
+    four: ["Lotus Eco Resort", "Konark Retreat", "Sun Temple Hotel"],
+    five: ["Mayfair Palm Beach Resort", "Swosti Chilika Resort", "The Crown Konark"]
+  },
+
+  "Nandankanan Zoo": {
+    four: ["Hotel Pal Heights", "Hotel Sandy's Tower", "Hotel Hindusthan International"],
+    five: ["Mayfair Lagoon", "Trident Bhubaneswar", "The Crown"]
+  },
+
+  "Dhauli Hills": {
+    four: ["Hotel Excellency", "Hotel Pushpak", "Hotel Presidency"],
+    five: ["Mayfair Convention", "Trident Bhubaneswar", "The Crown"]
+  },
+
+  "Barabati Fort": {
+    four: ["Hotel Seetal", "Hotel Bombay Inn", "Hotel Grand Residency"],
+    five: ["Pramod Convention", "Mayfair Lagoon", "The Crown"]
+  },
+
+  "Hirakud Dam": {
+    four: ["Hotel Sheela Towers", "Hotel Konark", "Hotel Plaza Inn"],
+    five: ["Regenta Inn Sambalpur", "The Grand Sambalpur", "Luxury Hirakud Resort"]
+  },
+
+  "Gopalpur Beach": {
+    four: ["Swosti Palm Resort", "Hotel Sea Pearl", "Hotel Bay Breeze"],
+    five: ["Mayfair Palm Beach Resort", "ITC Ganjam Retreat", "The Fern Beach Resort"]
+  },
+
+  "Simlipal Park": {
+    four: ["Simlipal Nature Camp", "Aranya Nivas", "Forest Rest House"],
+    five: ["Simlipal Luxury Eco Resort", "Royal Jungle Retreat", "Premium Forest Lodge"]
+  }
+};
+//hotel generator
+function generateHotels(placeName) {
+  return {
+    four: [
+      `Hotel ${placeName} Residency`,
+      `${placeName} Comfort Inn`,
+      `${placeName} Grand Stay`
+    ],
+    five: [
+      `${placeName} Palace`,
+      `${placeName} Luxury Resort`,
+      `${placeName} Royal Suites`
+    ]
+  };
+}
+
+// Populate dropdown
+const dropdown = document.getElementById("district");
+for (let district in data) {
+  let option = document.createElement("option");
+  option.value = district;
+  option.textContent = district;
+  dropdown.appendChild(option);
+}
+
+// Show places
+function showPlaces() {
+  const district = document.getElementById("district").value;
+  const results = document.getElementById("results");
+  results.innerHTML = "";
+
+  if (!district) {
+    results.innerHTML = "<p>Please select a district.</p>";
+    return;
+  }
+
+  data[district].forEach(place => {
+    const div = document.createElement("div");
+    div.className = "place";
+
+    div.innerHTML = `
+      <h3>${place.name}</h3>
+      <p>${place.desc}</p>
+    `;
+
+    // 👇 CLICK EVENT
+    div.onclick = () => showHotels(place.name);
+
+    results.appendChild(div);
+  });
+}
+
+//showhotel function
+function showHotels(placeName) {
+  const results = document.getElementById("results");
+
+  // ✅ This handles BOTH real + generated
+  const dataHotel = hotels[placeName] || generateHotels(placeName);
+
+  results.innerHTML = `
+    <div class="hotel-container">
+
+      <h2 class="hotel-title">Hotels in ${placeName}</h2>
+
+      <div class="hotel-section">
+        <h3 class="hotel-heading">⭐ 4-Star Hotels</h3>
+        <div class="hotel-grid">
+          ${dataHotel.four.map(h => `
+            <div class="hotel-card" data-query="${h} ${placeName}">
+              ${h}
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="hotel-section">
+        <h3 class="hotel-heading">⭐ 5-Star Hotels</h3>
+        <div class="hotel-grid">
+          ${dataHotel.five.map(h => `
+            <div class="hotel-card" data-query="${h} ${placeName}">
+              ${h}
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <button onclick="goBack()">⬅ Back</button>
+
+    </div>
+  `;
+
+  results.querySelectorAll('.hotel-card').forEach(card => {
+    card.addEventListener('click', () => openMap(card.dataset.query));
+  });
+}
+
+//hotel google search function
+function openMap(hotelName) {
+  const query = encodeURIComponent(hotelName);
+  const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
+  window.open(url, "_blank");
+}
+
+// backbutton function
+function goBack() {
+  showPlaces();
+}
+
+// Search filter
+function filterDistricts() {
+  const input = document.getElementById("searchBox").value.toLowerCase();
+  const options = dropdown.options;
+
+  for (let i = 0; i < options.length; i++) {
+    let txt = options[i].text.toLowerCase();
+    options[i].style.display = txt.includes(input) ? "" : "none";
+  }
+}
+</script>
+
+</body>
+</html>
